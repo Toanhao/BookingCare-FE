@@ -1,0 +1,68 @@
+@use '../../styles/common' as common;
+
+.header-container {
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #0d6efd;
+  color: common.$common-text-color;
+  height: 70px;
+  font-size: 18px;
+  position: fixed;
+  width: 100%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  .btn-logout {
+    color: common.$common-text-color;
+    line-height: 60px;
+    height: 60px;
+    padding: 0 20px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+    }
+
+    i {
+      font-size: common.$base-size + 1px;
+    }
+  }
+
+  .languages {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+      font-size: 16px;
+      font-weight: 500;
+
+    .welcome {
+      margin-right: 15px;
+      font-weight: 500;
+    }
+
+    .language-en,
+    .language-vi {
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      &.active {
+        background-color: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+      }
+    }
+
+    .language-en {
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+  }
+}

@@ -1,0 +1,8 @@
+@use 'sass:math';
+@use 'sass:color';
+@use 'variables' as *;
+@use '../../node_modules/bootstrap/scss/bootstrap';
+@use 'base';
+@use 'form';
+// Font Awesome v6 (pull compiled CSS to ensure webfonts resolve correctly)
+@import '@fortawesome/fontawesome-free/css/all.min.css';
