@@ -272,14 +272,24 @@
           transition: all 0.3s ease;
           font-weight: 600;
           color: #666;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
 
           i {
             font-size: 14px;
           }
+
+            .time-occupancy {
+              flex-basis: 100%;
+              margin-top: 4px;
+              font-weight: 500;
+              font-size: 12px;
+              color: #6b7280; // slate-500
+              line-height: 1.2;
+            }
 
           &:hover {
             background: #e3f2fd;
@@ -297,7 +307,38 @@
             i {
               color: white;
             }
+
+              .time-occupancy {
+                color: #eef2ff; // indigo-50
+                opacity: 0.9;
+              }
           }
+
+            &.disabled {
+              background: #fff1f2; // rose-50
+              border-color: #fca5a5; // rose-300
+              color: #b91c1c; // rose-700
+              cursor: not-allowed;
+              pointer-events: none;
+              box-shadow: none;
+              transform: none;
+
+              i {
+                color: #b91c1c;
+              }
+
+              .time-occupancy {
+                color: #dc2626; // rose-600
+                font-weight: 700;
+              }
+
+              &:hover {
+                background: #ffe4e6;
+                border-color: #fca5a5;
+                box-shadow: none;
+                transform: none;
+              }
+            }
         }
       }
 

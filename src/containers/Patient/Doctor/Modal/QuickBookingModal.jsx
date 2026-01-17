@@ -463,19 +463,34 @@ const QuickBookingModal = ({ isOpenModal, closeModal }) => {
             <i className="fa-solid fa-clock"></i> Chọn giờ khám
           </h5>
           <div className="time-slots-grid">
-            {timeSlots.map((time) => (
-              <div
-                key={time.value}
-                className={`time-slot ${
-                  selectedTime && selectedTime.value === time.value
-                    ? 'selected'
-                    : ''
-                }`}
-                onClick={() => handleSelectTime(time)}
-              >
-                <i className="fa-regular fa-clock"></i> {time.label}
-              </div>
-            ))}
+            {timeSlots.map((time) => {
+              const activeBookings = getActiveBookingCount(time.data);
+              const maxPatient = time.data?.maxPatient;
+              const isFull = maxPatient ? activeBookings >= maxPatient : false;
+              const occupancyText = maxPatient
+                ? ` (hiện có ${activeBookings}/${maxPatient} ca )`
+                : ` (hiện có ${activeBookings})`;
+              const isSelected =
+                !!selectedTime && selectedTime.value === time.value;
+              return (
+                <div
+                  key={time.value}
+                  className={`time-slot ${isSelected ? 'selected' : ''} ${
+                    isFull ? 'disabled' : ''
+                  }`}
+                  onClick={() => {
+                    if (!isFull) handleSelectTime(time);
+                  }}
+                  aria-disabled={isFull}
+                  role="button"
+                  tabIndex={isFull ? -1 : 0}
+                  title={isFull ? 'Lịch này đã đầy' : undefined}
+                >
+                  <i className="fa-regular fa-clock"></i> {time.label}
+                  <span className="time-occupancy">{occupancyText}</span>
+                </div>
+              );
+            })}
           </div>
           {selectedTime && (
             <div className="time-queue-hint">

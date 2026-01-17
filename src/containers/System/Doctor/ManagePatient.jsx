@@ -138,8 +138,8 @@ const ManagePatient = () => {
       );
       setShowPaymentQR(
         billData?.method &&
-        billData.method !== 'UNDEFINED' &&
-        billData.method !== 'Tiền mặt'
+          billData.method !== 'UNDEFINED' &&
+          billData.method !== 'Tiền mặt'
       );
       setPaymentConfirmed(
         billData?.method === 'Tiền mặt' || billData?.status === 'PAID'
@@ -197,10 +197,10 @@ const ManagePatient = () => {
         setStep(2);
         break;
       case 2:
-        goNextMedical();
+        goNextPayment();
         break;
       case 3:
-        goNextPrescription();
+        goNextMedical();
         break;
       case 4:
         finalizeExamination();
@@ -216,16 +216,28 @@ const ManagePatient = () => {
     }
   };
 
+  const goNextPayment = () => {
+    if (isHistoryMode || bill?.status === 'PAID') {
+      setStep(3);
+      return;
+    }
+    if (payMethod !== 'Tiền mặt' && !paymentConfirmed) {
+      toast.warn('Vui lòng xác nhận đã thanh toán trước khi tiếp tục');
+      return;
+    }
+    setStep(3);
+  };
+
   const goNextMedical = () => {
     if (isHistoryMode || createdMedicalRecord?.id) {
-      setStep(3);
+      setStep(4);
       return;
     }
     if (!diagnosis || !conclusion) {
       toast.warn('Vui lòng nhập chẩn đoán và kết luận');
       return;
     }
-    setStep(3);
+    setStep(4);
   };
 
   const addItemRow = () => {
@@ -266,11 +278,11 @@ const ManagePatient = () => {
 
   const goNextPrescription = () => {
     if (isHistoryMode || prescription?.id) {
-      setStep(4);
+      finalizeExamination();
       return;
     }
     if (validatePrescription()) {
-      setStep(4);
+      finalizeExamination();
     }
   };
 
@@ -306,12 +318,6 @@ const ManagePatient = () => {
 
   const finalizeExamination = async () => {
     if (isHistoryMode) return;
-
-    // Kiểm tra xác nhận thanh toán online
-    if (payMethod !== 'Tiền mặt' && !paymentConfirmed) {
-      toast.warn('Vui lòng xác nhận đã thanh toán');
-      return;
-    }
 
     const needsMedical = !createdMedicalRecord?.id;
     const needsPrescription = !prescription?.id;
@@ -353,7 +359,6 @@ const ManagePatient = () => {
       if (!currentBill) {
         const res = await createBill({
           medicalRecordId: record.id,
-          method: 'UNDEFINED',
         });
         currentBill = res?.data || res;
       }
@@ -528,21 +533,21 @@ const ManagePatient = () => {
                 onClick={() => handleStepClick(2)}
               >
                 <span className="step-number">2</span>
-                <span className="step-label">Khám bệnh</span>
+                <span className="step-label">Thanh toán</span>
               </div>
               <div
                 className={getStepClassName(3)}
                 onClick={() => handleStepClick(3)}
               >
                 <span className="step-number">3</span>
-                <span className="step-label">Đơn thuốc</span>
+                <span className="step-label">Khám bệnh</span>
               </div>
               <div
                 className={getStepClassName(4)}
                 onClick={() => handleStepClick(4)}
               >
                 <span className="step-number">4</span>
-                <span className="step-label">Hóa đơn</span>
+                <span className="step-label">Đơn thuốc</span>
               </div>
             </div>
             <button className="close" onClick={closeModal}>
@@ -602,6 +607,97 @@ const ManagePatient = () => {
             )}
 
             {step === 2 && (
+              <div className="step-2">
+                <div className="form-row">
+                  <label>Phương thức thanh toán</label>
+                  <select
+                    value={payMethod}
+                    onChange={(e) => {
+                      const method = e.target.value;
+                      setPayMethod(method);
+                      setShowPaymentQR(method !== 'Tiền mặt');
+                      setPaymentConfirmed(method === 'Tiền mặt');
+                    }}
+                    disabled={bill?.status === 'PAID' || isHistoryMode}
+                  >
+                    <option value="Tiền mặt">Tiền mặt</option>
+                    <option value="Thanh toán online">
+                      Thanh toán online (VNPay)
+                    </option>
+                  </select>
+                </div>
+
+                {showPaymentQR && (
+                  <div className="payment-qr-section">
+                    <div className="qr-container">
+                      <h4>
+                        <i className="fa-solid fa-qrcode"></i> Quét mã QR để
+                        thanh toán
+                      </h4>
+                      {renderVNPayQR(totalFee, bookingDetail, bill)}
+                      <div className="payment-info">
+                        <div className="info-row">
+                          <span>Ngân hàng:</span>
+                          <strong>Vietcombank</strong>
+                        </div>
+                        <div className="info-row">
+                          <span>Số tài khoản:</span>
+                          <strong>9347581948</strong>
+                        </div>
+                        <div className="info-row">
+                          <span>Chủ tài khoản:</span>
+                          <strong>DINH VAN TOAN</strong>
+                        </div>
+                        <div className="info-row">
+                          <span>Số tiền:</span>
+                          <strong>{totalFee?.toLocaleString('vi-VN')} đ</strong>
+                        </div>
+                        <div className="info-row">
+                          <span>Nội dung:</span>
+                          <strong>
+                            THANH TOAN HOA DON ID{bookingDetail?.id}{' '}
+                            {bookingDetail?.patient?.user?.fullName}
+                          </strong>
+                        </div>
+                      </div>
+                      {!paymentConfirmed && (
+                        <button
+                          className="btn-confirm-payment"
+                          onClick={() => setPaymentConfirmed(true)}
+                        >
+                          <i className="fa-solid fa-check" /> Xác nhận đã thanh
+                          toán
+                        </button>
+                      )}
+                      {paymentConfirmed && (
+                        <div className="payment-confirmed">
+                          <i className="fa-solid fa-check-circle" /> Đã xác nhận
+                          thanh toán
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <div className="info">
+                  <div className="bill-box">
+                    <div className="bill-row">
+                      <span>Phí khám (không bao gồm thuốc)</span>
+                      <strong>{totalFee?.toLocaleString('vi-VN')} đ</strong>
+                    </div>
+                    {bill && (
+                      <div className="bill-row">
+                        <span>Hóa đơn</span>
+                        <strong>
+                          #{bill.id} - {bill.status}
+                        </strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
               <div className="step-1">
                 <div className="form-row">
                   <label>Chẩn đoán</label>
@@ -630,7 +726,7 @@ const ManagePatient = () => {
               </div>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <div className="step-2">
                 <div className="items">
                   <div className="items-header">
@@ -751,96 +847,6 @@ const ManagePatient = () => {
                 </div>
               </div>
             )}
-
-            {step === 4 && (
-              <div className="step-2">
-                <div className="form-row">
-                  <label>Phương thức thanh toán</label>
-                  <select
-                    value={payMethod}
-                    onChange={(e) => {
-                      const method = e.target.value;
-                      setPayMethod(method);
-                      setShowPaymentQR(method !== 'Tiền mặt');
-                      setPaymentConfirmed(method === 'Tiền mặt');
-                    }}
-                    disabled={bill?.status === 'PAID' || isHistoryMode}
-                  >
-                    <option value="Tiền mặt">Tiền mặt</option>
-                    <option value="Thanh toán online">
-                      Thanh toán online (VNPay)
-                    </option>
-                  </select>
-                </div>
-
-                {showPaymentQR && (
-                  <div className="payment-qr-section">
-                    <div className="qr-container">
-                      <h4>
-                        <i className="fa-solid fa-qrcode"></i> Quét mã QR để thanh
-                        toán
-                      </h4>
-                      {renderVNPayQR(totalFee, bookingDetail, bill)}
-                      <div className="payment-info">
-                        <div className="info-row">
-                          <span>Ngân hàng:</span>
-                          <strong>Vietcombank</strong>
-                        </div>
-                        <div className="info-row">
-                          <span>Số tài khoản:</span>
-                          <strong>9347581948</strong>
-                        </div>
-                        <div className="info-row">
-                          <span>Chủ tài khoản:</span>
-                          <strong>DINH VAN TOAN</strong>
-                        </div>
-                        <div className="info-row">
-                          <span>Số tiền:</span>
-                          <strong>{totalFee?.toLocaleString('vi-VN')} đ</strong>
-                        </div>
-                        <div className="info-row">
-                          <span>Nội dung:</span>
-                          <strong>
-                            THANH TOAN HOA DON ID{bookingDetail?.id}{' '}
-                            {bookingDetail?.patient?.user?.fullName}
-                          </strong>
-                        </div>
-                      </div>
-                      {!paymentConfirmed && (
-                        <button
-                          className="btn-confirm-payment"
-                          onClick={() => setPaymentConfirmed(true)}
-                        >
-                          <i className="fa-solid fa-check" /> Xác nhận đã thanh toán
-                        </button>
-                      )}
-                      {paymentConfirmed && (
-                        <div className="payment-confirmed">
-                          <i className="fa-solid fa-check-circle" /> Đã xác nhận
-                          thanh toán
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                <div className="info">
-                  <div className="bill-box">
-                    <div className="bill-row">
-                      <span>Phí khám (không bao gồm thuốc)</span>
-                      <strong>{totalFee?.toLocaleString('vi-VN')} đ</strong>
-                    </div>
-                    {bill && (
-                      <div className="bill-row">
-                        <span>Hóa đơn</span>
-                        <strong>
-                          #{bill.id} - {bill.status}
-                        </strong>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="mp-modal-footer">
@@ -859,11 +865,16 @@ const ManagePatient = () => {
             {step === 4 && (
               <button
                 className="btn-confirm"
-                onClick={finalizeExamination}
-                disabled={bill?.status === 'PAID' || isHistoryMode}
+                onClick={nextStep}
+                disabled={
+                  isHistoryMode ||
+                  (createdMedicalRecord?.id && prescription?.id)
+                }
               >
                 <i className="fa-solid fa-check-circle" />
-                {bill?.status === 'PAID' ? ' Đã thanh toán' : ' Hoàn thành'}
+                {createdMedicalRecord?.id && prescription?.id
+                  ? ' Đã hoàn thành'
+                  : ' Hoàn thành'}
               </button>
             )}
 
