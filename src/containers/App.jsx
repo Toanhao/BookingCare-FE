@@ -14,6 +14,7 @@ import {
 } from '../hoc/authentication';
 import CustomScrollbars from '../components/CustomScrollbars';
 import NavigationInitializer from '../components/NavigationInitializer';
+import AuthSessionInitializer from '../components/AuthSessionInitializer';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { path } from '../utils';
 import Home from '../routes/Home';
@@ -43,6 +44,7 @@ const App = ({ persistor, onBeforeLift }) => {
       <Router basename={routerBase}>
         <ErrorBoundary>
           <NavigationInitializer />
+          <AuthSessionInitializer />
           <div className="main-container">
             <span className="content-container">
               <CustomScrollbars style={{ height: '100vh', width: '100%' }}>

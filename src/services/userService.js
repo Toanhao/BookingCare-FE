@@ -10,6 +10,10 @@ const handleLoginApi = (userEmail, userPassword) => {
   });
 };
 
+const getUserProfileApi = () => {
+  return axios.get('/api/users/profile');
+};
+
 const getAllUsers = (inputId) => {
   return axios.get(`/api/users`);
 };
@@ -204,6 +208,7 @@ const getMedicines = () => {
 
 export {
   handleLoginApi,
+  getUserProfileApi,
   getAllUsers,
   createNewUserService,
   deleteUserService,
