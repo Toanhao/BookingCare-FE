@@ -5,6 +5,8 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 
 import * as actions from '../../store/actions';
 import { handleLoginApi } from '../../services/userService';
+import { setAccessToken, setRefreshToken } from '../../utils/authToken';
+import { getDefaultRouteByRole } from '../../utils';
 import './Login.scss';
 
 const Login = () => {
@@ -30,30 +32,22 @@ const Login = () => {
 
       // Trích xuất user và token từ response
       const userData = res.data || {};
-      const { user: rawUser, token } = userData;
+      const { user: rawUser, accessToken, refreshToken } = userData;
       const user =
         rawUser && rawUser.dataValues ? { ...rawUser.dataValues } : rawUser;
 
-      // Lưu token vào localStorage nếu có
-      if (token) {
-        localStorage.setItem('access_token', token);
+      // ========== Lưu cả 2 tokens vào localStorage ==========
+      if (accessToken) {
+        setAccessToken(accessToken);
+      }
+      if (refreshToken) {
+        setRefreshToken(refreshToken);
       }
 
       // Nếu user có id thì đăng nhập thành công, lưu vào Redux
       if (user && user.id) {
         dispatch(actions.userLoginSuccess(user));
-
-        // Điều hướng tới trang khác nhau tùy theo role
-        const role = user.role;
-        if (role === 'ADMIN') {
-          navigate('/system/user-redux');
-        } else if (role === 'DOCTOR') {
-          navigate('/doctor/manage-schedule');
-        } else if (role === 'PATIENT') {
-          navigate('/home');
-        } else {
-          navigate('/home');
-        }
+        navigate(getDefaultRouteByRole(user.role));
       } else {
         setErrMessage('Invalid user data');
         setIsLoading(false);
